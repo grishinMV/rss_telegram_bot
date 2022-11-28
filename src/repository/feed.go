@@ -5,19 +5,6 @@ import (
 	"rss-bot/src/entity"
 )
 
-type dbConfig interface {
-	Host() string
-	Port() string
-	User() string
-	Password() string
-	Charset() string
-	DbName() string
-}
-
-type Connection interface {
-	GetConnection(config *dbConfig) (*Connection, error)
-}
-
 type FeedRepository struct {
 	conn *db.Connection
 }

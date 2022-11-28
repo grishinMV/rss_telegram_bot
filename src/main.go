@@ -6,7 +6,7 @@ import (
 	"os"
 	"rss-bot/src/db"
 	"rss-bot/src/events"
-	"rss-bot/src/loggrer"
+	"rss-bot/src/logger"
 	"rss-bot/src/repository"
 	"rss-bot/src/telegram"
 	"time"
@@ -14,7 +14,12 @@ import (
 
 func main() {
 	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), http.DefaultClient)
-	dbConnection, err := db.GetConnection(db.LoadConfigFromEnv())
+	dbPath, exist := os.LookupEnv("DB_PATH")
+	if !exist {
+		dbPath = "./../rss.sqlite"
+	}
+
+	dbConnection, err := db.GetConnection(dbPath)
 	if err != nil {
 		fmt.Println("Error " + err.Error())
 		os.Exit(1)
@@ -22,7 +27,7 @@ func main() {
 
 	//feedRepository := repository.NewFeedRepository(dbConnection)
 	usersRepository := repository.NewUsersRepository(dbConnection)
-	logger := &loggrer.Logger{}
+	logger := &logger.Logger{}
 	eventManager := events.NewEventManager(logger)
 	//parser := NewParser(eventManager, feedRepository, &http.Client{})
 	registerHandlers(eventManager, telegramClient, logger, usersRepository)
@@ -54,7 +59,7 @@ func main() {
 func registerHandlers(
 	em *events.Manager,
 	messenger *telegram.Client,
-	logger *loggrer.Logger,
+	logger *logger.Logger,
 	usersRepository *repository.UsersRepository,
 ) {
 	feedUpdatedHandler := events.NewFeedUpdatedHandler(messenger, logger, usersRepository)

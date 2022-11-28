@@ -30,6 +30,9 @@ func (r *UsersRepository) FindByTelegramId(telegramId int) (*entity.User, error)
 
 	var user entity.User
 	err := r.conn.Db.Get(&user, query, telegramId)
+	if err != nil {
+		return nil, err
+	}
 
 	return &user, err
 }
@@ -42,7 +45,7 @@ func (r *UsersRepository) Save(user *entity.User) error {
 	} else {
 		query := "UPDATE users SET telegram_id = ?, chat_id = ?, last_message = ? WHERE id = ?;"
 
-		_, err = r.conn.Db.Exec(query, user.TelegramId, user.ChatId, user.LastMessage)
+		_, err = r.conn.Db.Exec(query, user.TelegramId, user.ChatId, user.LastMessage, user.Id)
 	}
 
 	return err

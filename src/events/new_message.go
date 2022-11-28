@@ -59,6 +59,10 @@ func (h *NewMessageHandler) Handle(e interface{}) error {
 		}
 	}
 
+	if user == nil {
+		return h.handleStartMessage(user, event.Message)
+	}
+
 	switch event.Message.Text {
 	case UserMessageStart:
 		return h.handleStartMessage(user, event.Message)
@@ -66,9 +70,9 @@ func (h *NewMessageHandler) Handle(e interface{}) error {
 		return h.handleAddMessage(user, event.Message)
 	case UserMessageDelete:
 		return h.handleDeleteMessage(user, event.Message)
+	default:
+		return h.handleCustomMessage(user, event.Message)
 	}
-
-	return nil
 }
 
 func (h *NewMessageHandler) handleStartMessage(user *entity.User, message *telegram.Message) error {
@@ -108,4 +112,17 @@ func (h *NewMessageHandler) handleDeleteMessage(user *entity.User, message *tele
 	}
 
 	return nil
+}
+
+func (h *NewMessageHandler) handleCustomMessage(user *entity.User, message *telegram.Message) error {
+	switch user.LastMessage {
+	case UserMessageAdd:
+		_, _ = h.telegram.SendTextMessage(message.Chat.Id, "add")
+	case UserMessageDelete:
+		h.logger.Log("delete")
+		_, _ = h.telegram.SendTextMessage(message.Chat.Id, "delete")
+	}
+
+	user.LastMessage = message.Text
+	return h.usersRepository.Save(user)
 }
