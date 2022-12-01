@@ -51,13 +51,14 @@ type Chat struct {
 }
 
 type Message struct {
-	Id              int    `json:"message_id"`
-	MessageThreadId int    `json:"message_thread_id,omitempty"`
-	From            User   `json:"from,omitempty"`
-	SenderChat      User   `json:"sender_chat,omitempty"`
-	Date            int    `json:"date,omitempty"`
-	Chat            Chat   `json:"chat,omitempty"`
-	Text            string `json:"text,omitempty"`
+	Id              int         `json:"message_id"`
+	MessageThreadId int         `json:"message_thread_id,omitempty"`
+	From            User        `json:"from,omitempty"`
+	SenderChat      User        `json:"sender_chat,omitempty"`
+	Date            int         `json:"date,omitempty"`
+	Chat            Chat        `json:"chat,omitempty"`
+	Text            string      `json:"text,omitempty"`
+	ReplyMarkup     interface{} `json:"reply_markup,omitempty"`
 }
 
 type Update struct {
@@ -66,4 +67,14 @@ type Update struct {
 	EditedMessage     *Message `json:"edited_message,omitempty"`
 	ChannelPost       *Message `json:"channel_post,omitempty"`
 	EditedChannelPost *Message `json:"edited_channel_post,omitempty"`
+}
+
+type KeyboardButton struct {
+	Text string `json:"text"`
+}
+
+type ReplyKeyboardMarkup struct {
+	Keyboard        [][]KeyboardButton `json:"keyboard"`
+	ResizeKeyboard  bool               `json:"resize_keyboard,omitempty"`
+	OneTimeKeyboard bool               `json:"one_time_keyboard,omitempty"`
 }

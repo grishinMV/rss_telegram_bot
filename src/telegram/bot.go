@@ -64,3 +64,25 @@ func (bot *Client) SendTextMessage(chatId int, text string) (*SendMessageRespons
 
 	return &result, err
 }
+
+func (bot *Client) SendReplyMarkup(chatId int, text string, markup ReplyKeyboardMarkup) (*SendMessageResponse, error) {
+	markupJson, err := json.Marshal(markup)
+	if err != nil {
+		return nil, err
+	}
+
+	text = url.QueryEscape(text)
+
+	params := "chat_id=" + strconv.Itoa(chatId) + "&reply_markup=" + string(markupJson) + "&text=" + text
+
+	query := bot.apiUrl + "/bot" + bot.token + "/sendMessage?" + params
+	response, err := bot.client.Get(query)
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := SendMessageResponse{}
+	err = json.Unmarshal(body, &result)
+
+	return &result, err
+}

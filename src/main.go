@@ -25,12 +25,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	//feedRepository := repository.NewFeedRepository(dbConnection)
+	feedRepository := repository.NewFeedRepository(dbConnection)
 	usersRepository := repository.NewUsersRepository(dbConnection)
-	logger := &logger.Logger{}
-	eventManager := events.NewEventManager(logger)
+	loggerService := &logger.Logger{}
+	eventManager := events.NewEventManager(loggerService)
 	//parser := NewParser(eventManager, feedRepository, &http.Client{})
-	registerHandlers(eventManager, telegramClient, logger, usersRepository)
+	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository)
 	var lastMessageId int
 
 	for {
@@ -61,10 +61,25 @@ func registerHandlers(
 	messenger *telegram.Client,
 	logger *logger.Logger,
 	usersRepository *repository.UsersRepository,
+	feedRepository *repository.FeedRepository,
 ) {
 	feedUpdatedHandler := events.NewFeedUpdatedHandler(messenger, logger, usersRepository)
 	em.RegisterHandler(feedUpdatedHandler)
 
-	newMessageHandler := events.NewNewMessageHandler(logger, usersRepository, messenger)
+	newMessageHandler := events.NewNewMessageHandler(logger, usersRepository, messenger, em)
 	em.RegisterHandler(newMessageHandler)
+
+	startChatHandler := events.NewStartChatHandler(messenger, logger, usersRepository)
+	em.RegisterHandler(startChatHandler)
+
+	receiveAddMessageHandler := events.NewReceiveAddMessageHandler(messenger, logger, usersRepository)
+	em.RegisterHandler(receiveAddMessageHandler)
+
+	receiveDeleteMessageHandler := events.NewReceiveDeleteMessageHandler(
+		messenger,
+		logger,
+		usersRepository,
+		feedRepository,
+	)
+	em.RegisterHandler(receiveDeleteMessageHandler)
 }
