@@ -7,6 +7,7 @@ import (
 	"rss-bot/src/db"
 	"rss-bot/src/events"
 	"rss-bot/src/logger"
+	"rss-bot/src/parser"
 	"rss-bot/src/repository"
 	"rss-bot/src/telegram"
 	"time"
@@ -29,8 +30,8 @@ func main() {
 	usersRepository := repository.NewUsersRepository(dbConnection)
 	loggerService := &logger.Logger{}
 	eventManager := events.NewEventManager(loggerService)
-	//parser := NewParser(eventManager, feedRepository, &http.Client{})
-	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository)
+	feedParser := parser.NewParser(&http.Client{})
+	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository, feedParser)
 	var lastMessageId int
 
 	for {
@@ -47,7 +48,7 @@ func main() {
 		}
 
 		//feeds, _ := feedRepository.FindForUpdate()
-		//
+		//feed.NextParse = nowTimestamp + ParsePeriod
 		//for _, feed := range feeds {
 		//	go parser.ParseFeed(feed)
 		//}
@@ -62,9 +63,10 @@ func registerHandlers(
 	logger *logger.Logger,
 	usersRepository *repository.UsersRepository,
 	feedRepository *repository.FeedRepository,
+	feedParser *parser.Parser,
 ) {
-	feedUpdatedHandler := events.NewFeedUpdatedHandler(messenger, logger, usersRepository)
-	em.RegisterHandler(feedUpdatedHandler)
+	newFeedItemHandler := events.NewNewFeedItemHandler(messenger, logger, usersRepository)
+	em.RegisterHandler(newFeedItemHandler)
 
 	newMessageHandler := events.NewNewMessageHandler(logger, usersRepository, messenger, em)
 	em.RegisterHandler(newMessageHandler)
@@ -82,4 +84,14 @@ func registerHandlers(
 		feedRepository,
 	)
 	em.RegisterHandler(receiveDeleteMessageHandler)
+
+	addFeedHandler := events.NewAddFeedHandler(
+		messenger,
+		logger,
+		usersRepository,
+		feedRepository,
+		feedParser,
+		em,
+	)
+	em.RegisterHandler(addFeedHandler)
 }

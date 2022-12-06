@@ -13,6 +13,20 @@ func NewUsersRepository(conn *db.Connection) *UsersRepository {
 	return &UsersRepository{conn: conn}
 }
 
+func (r *UsersRepository) AddFeed(user *entity.User, feed entity.Feed) error {
+	query := "insert into users_feeds (user_id, feed_id) values (?, ?)"
+	_, err := r.conn.Db.Exec(query, user.Id, feed.Id)
+
+	return err
+}
+
+func (r *UsersRepository) DeleteFeed(user *entity.User, feed entity.Feed) error {
+	query := "delete from users_feeds where user_id = ? and feed_id = ?"
+	_, err := r.conn.Db.Exec(query, user.Id, feed.Id)
+
+	return err
+}
+
 func (r *UsersRepository) FindUsersByFeedId(feedId int) ([]entity.User, error) {
 	query := "select u.* from users u inner join users_feeds uf on u.id = uf.user_id where uf.feed_id = ?"
 
@@ -41,7 +55,14 @@ func (r *UsersRepository) Save(user *entity.User) error {
 	var err error
 	if user.Id == 0 {
 		query := "INSERT INTO users (telegram_id, chat_id, last_message) VALUES (?, ?, ?);"
-		_, err = r.conn.Db.Exec(query, user.ChatId, user.ChatId, user.LastMessage)
+		result, err := r.conn.Db.Exec(query, user.ChatId, user.ChatId, user.LastMessage)
+
+		userId, err := result.LastInsertId()
+		if err != nil {
+			return err
+		}
+
+		user.Id = int(userId)
 	} else {
 		query := "UPDATE users SET telegram_id = ?, chat_id = ?, last_message = ? WHERE id = ?;"
 

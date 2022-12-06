@@ -92,7 +92,10 @@ func (h *NewMessageHandler) Handle(e interface{}) error {
 func (h *NewMessageHandler) handleCustomMessage(user *entity.User, message *telegram.Message) error {
 	switch user.LastMessage {
 	case UserMessageAdd:
-		_, _ = h.telegram.SendTextMessage(message.Chat.Id, "add")
+		go h.em.Dispatch(AddFeed{
+			User:    user,
+			Message: message,
+		})
 	case UserMessageDelete:
 		h.logger.Log("delete")
 		_, _ = h.telegram.SendTextMessage(message.Chat.Id, "delete")

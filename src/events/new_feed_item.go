@@ -8,28 +8,28 @@ import (
 	"rss-bot/src/telegram"
 )
 
-type FeedUpdated struct {
+type NewFeedItem struct {
 	FeedId int
 	Text   string
 	Link   string
 }
 
-func (fu FeedUpdated) GetName() string {
-	return "FeedUpdated"
+func (fu NewFeedItem) GetName() string {
+	return "NewFeedItem"
 }
 
-type FeedUpdatedHandler struct {
+type NewFeedItemHandler struct {
 	messenger       *telegram.Client
 	logger          Logger
 	usersRepository *repository.UsersRepository
 }
 
-func NewFeedUpdatedHandler(
+func NewNewFeedItemHandler(
 	messenger *telegram.Client,
 	logger Logger,
 	usersRepository *repository.UsersRepository,
-) *FeedUpdatedHandler {
-	return &FeedUpdatedHandler{
+) *NewFeedItemHandler {
+	return &NewFeedItemHandler{
 		messenger:       messenger,
 		logger:          logger,
 		usersRepository: usersRepository,
@@ -37,15 +37,15 @@ func NewFeedUpdatedHandler(
 
 }
 
-func (h *FeedUpdatedHandler) GetEventName() string {
-	return "FeedUpdated"
+func (h *NewFeedItemHandler) GetEventName() string {
+	return "NewFeedItem"
 }
 
-func (h *FeedUpdatedHandler) Handle(e interface{}) error {
-	event, ok := e.(FeedUpdated)
+func (h *NewFeedItemHandler) Handle(e interface{}) error {
+	event, ok := e.(NewFeedItem)
 	if ok == false {
 		t := reflect.TypeOf(e)
-		return errors.New("Incorrect type assertion FeedUpdated " + t.String())
+		return errors.New("Incorrect type assertion NewFeedItem " + t.String())
 	}
 
 	users, err := h.usersRepository.FindUsersByFeedId(event.FeedId)
