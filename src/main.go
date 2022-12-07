@@ -21,7 +21,7 @@ func main() {
 	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), client)
 	dbPath, exist := os.LookupEnv("DB_PATH")
 	if !exist {
-		dbPath = "./../rss.sqlite"
+		dbPath = os.Getenv("DB_PATH")
 	}
 
 	dbConnection, err := db.GetConnection(dbPath)
