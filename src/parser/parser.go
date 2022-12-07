@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/mmcdole/gofeed"
+	"log"
 	"net/http"
 	"rss-bot/src/entity"
 	"time"
@@ -26,6 +27,12 @@ func NewParser(
 }
 
 func (p *Parser) Parse(feed *entity.Feed) ([]FeedItem, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+		}
+	}()
+
 	nowTimestamp := time.Now().Unix()
 
 	req, err := http.NewRequest("GET", feed.Link, nil)
@@ -49,6 +56,10 @@ func (p *Parser) Parse(feed *entity.Feed) ([]FeedItem, error) {
 
 	var newItems []FeedItem
 	for _, item := range parsedRss.Items {
+		if item.PublishedParsed == nil {
+			continue
+		}
+
 		if item.PublishedParsed.Unix() < feed.LastNew {
 			continue
 		}

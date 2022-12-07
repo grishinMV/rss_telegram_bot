@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"rss-bot/src/db"
@@ -38,12 +37,6 @@ func main() {
 	feedParser := parser.NewParser(client)
 
 	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository, feedParser)
-
-	defer func() {
-		if err := recover(); err != nil {
-			log.Println("panic occurred:", err)
-		}
-	}()
 
 	var lastMessageId int
 
