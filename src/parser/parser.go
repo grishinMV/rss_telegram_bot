@@ -9,6 +9,8 @@ import (
 
 const userAgent = "RSS bot"
 
+var ParsePeriod = int64(60 * time.Second)
+
 type Parser struct {
 	httpClient *http.Client
 	parser     *gofeed.Parser
@@ -59,6 +61,7 @@ func (p *Parser) Parse(feed *entity.Feed) ([]FeedItem, error) {
 	}
 
 	feed.LastNew = nowTimestamp
+	feed.NextParse = ParsePeriod + time.Now().Unix()
 
 	return newItems, err
 }

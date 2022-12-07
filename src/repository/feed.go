@@ -4,6 +4,7 @@ import (
 	"rss-bot/src/db"
 	"rss-bot/src/entity"
 	"strconv"
+	"time"
 )
 
 type FeedRepository struct {
@@ -81,9 +82,9 @@ func (r *FeedRepository) FindByUrl(url string) ([]entity.Feed, error) {
 }
 
 func (r *FeedRepository) FindForUpdate() ([]entity.Feed, error) {
-	query := "SELECT * FROM feeds WHERE feeds.next_parse < CURRENT_TIMESTAMP()"
+	query := "SELECT * FROM feeds WHERE feeds.next_parse < ?"
 	var feed []entity.Feed
-	err := r.conn.Db.Select(&feed, query)
+	err := r.conn.Db.Select(&feed, query, time.Now().Unix())
 	if err != nil {
 		return nil, err
 	}

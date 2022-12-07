@@ -101,6 +101,8 @@ func (h *NewMessageHandler) handleCustomMessage(user *entity.User, message *tele
 			User:    user,
 			Message: message,
 		})
+	default:
+		_, _ = h.telegram.SendTextMessage(message.Chat.Id, "Что?")
 	}
 
 	user.LastMessage = message.Text

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"rss-bot/src/db"
@@ -14,7 +15,10 @@ import (
 )
 
 func main() {
-	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), http.DefaultClient)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), client)
 	dbPath, exist := os.LookupEnv("DB_PATH")
 	if !exist {
 		dbPath = "./../rss.sqlite"
@@ -30,8 +34,17 @@ func main() {
 	usersRepository := repository.NewUsersRepository(dbConnection)
 	loggerService := &logger.Logger{}
 	eventManager := events.NewEventManager(loggerService)
-	feedParser := parser.NewParser(&http.Client{})
+
+	feedParser := parser.NewParser(client)
+
 	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository, feedParser)
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+		}
+	}()
+
 	var lastMessageId int
 
 	for {
@@ -47,11 +60,31 @@ func main() {
 			})
 		}
 
-		//feeds, _ := feedRepository.FindForUpdate()
-		//feed.NextParse = nowTimestamp + ParsePeriod
-		//for _, feed := range feeds {
-		//	go parser.ParseFeed(feed)
-		//}
+		feeds, _ := feedRepository.FindForUpdate()
+
+		for _, feed := range feeds {
+			feed := feed
+			go func() {
+				feedItems, err := feedParser.Parse(&feed)
+				if err != nil {
+					loggerService.Log(err.Error())
+				}
+
+				for _, item := range feedItems {
+					eventManager.Dispatch(events.NewFeedItem{
+						FeedId: item.FeedId,
+						Text:   item.Text,
+						Link:   item.Link,
+					})
+				}
+
+				err = feedRepository.Save(&feed)
+				if err != nil {
+					loggerService.Log(err.Error())
+				}
+			}()
+
+		}
 
 		time.Sleep(2 * time.Second)
 	}

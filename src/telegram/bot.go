@@ -50,7 +50,6 @@ func (bot *Client) GetUpdates(offset int, limit int) (*UpdateResponse, error) {
 }
 
 func (bot *Client) SendTextMessage(chatId int, text string) (*SendMessageResponse, error) {
-	text = url.QueryEscape(text)
 	params := "chat_id=" + strconv.Itoa(chatId) + "&text=" + text
 
 	query := bot.apiUrl + "/bot" + bot.token + "/sendMessage?" + params
