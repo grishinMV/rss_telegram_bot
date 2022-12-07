@@ -14,6 +14,29 @@ func NewFeedRepository(conn *db.Connection) *FeedRepository {
 	return &FeedRepository{conn: conn}
 }
 
+func (r *FeedRepository) Delete(feed *entity.Feed) error {
+	query := "DELETE FROM feeds WHERE id = ?"
+	_, err := r.conn.Db.Exec(query, feed.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *FeedRepository) GetRelationsCount(feed *entity.Feed) (int, error) {
+	query := "SELECT count(*) AS count FROM users_feeds WHERE feed_id = ?"
+
+	var count int
+
+	err := r.conn.Db.Get(&count, query, feed.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (r *FeedRepository) Save(feed *entity.Feed) error {
 	var err error
 	if feed.Id == 0 {
@@ -36,7 +59,7 @@ func (r *FeedRepository) Save(feed *entity.Feed) error {
 }
 
 func (r *FeedRepository) FindByUser(userId int) ([]entity.Feed, error) {
-	query := "select f.* from feeds f inner join users_feeds uf on f.id = uf.feed_id where uf.user_id = ?"
+	query := "SELECT f.* FROM feeds f INNER JOIN users_feeds uf ON f.id = uf.feed_id WHERE uf.user_id = ?"
 	var feed []entity.Feed
 	err := r.conn.Db.Select(&feed, query, strconv.Itoa(userId))
 	if err != nil {
@@ -47,7 +70,7 @@ func (r *FeedRepository) FindByUser(userId int) ([]entity.Feed, error) {
 }
 
 func (r *FeedRepository) FindByUrl(url string) ([]entity.Feed, error) {
-	query := "select * from feeds where link = ?"
+	query := "SELECT * FROM feeds WHERE link = ?"
 	var feeds []entity.Feed
 	err := r.conn.Db.Select(&feeds, query, url)
 	if err != nil {
@@ -58,7 +81,7 @@ func (r *FeedRepository) FindByUrl(url string) ([]entity.Feed, error) {
 }
 
 func (r *FeedRepository) FindForUpdate() ([]entity.Feed, error) {
-	query := "select * from feeds where feeds.next_parse < CURRENT_TIMESTAMP()"
+	query := "SELECT * FROM feeds WHERE feeds.next_parse < CURRENT_TIMESTAMP()"
 	var feed []entity.Feed
 	err := r.conn.Db.Select(&feed, query)
 	if err != nil {

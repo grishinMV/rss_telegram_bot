@@ -94,4 +94,14 @@ func registerHandlers(
 		em,
 	)
 	em.RegisterHandler(addFeedHandler)
+
+	deleteFeedHandler := events.NewDeleteFeedHandler(
+		messenger,
+		logger,
+		usersRepository,
+		feedRepository,
+		feedParser,
+		em,
+	)
+	em.RegisterHandler(deleteFeedHandler)
 }

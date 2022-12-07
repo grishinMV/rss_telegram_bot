@@ -14,21 +14,21 @@ func NewUsersRepository(conn *db.Connection) *UsersRepository {
 }
 
 func (r *UsersRepository) AddFeed(user *entity.User, feed entity.Feed) error {
-	query := "insert into users_feeds (user_id, feed_id) values (?, ?)"
+	query := "INSERT INTO users_feeds (user_id, feed_id) VALUES (?, ?)"
 	_, err := r.conn.Db.Exec(query, user.Id, feed.Id)
 
 	return err
 }
 
 func (r *UsersRepository) DeleteFeed(user *entity.User, feed entity.Feed) error {
-	query := "delete from users_feeds where user_id = ? and feed_id = ?"
+	query := "DELETE FROM users_feeds WHERE user_id = ? AND feed_id = ?"
 	_, err := r.conn.Db.Exec(query, user.Id, feed.Id)
 
 	return err
 }
 
 func (r *UsersRepository) FindUsersByFeedId(feedId int) ([]entity.User, error) {
-	query := "select u.* from users u inner join users_feeds uf on u.id = uf.user_id where uf.feed_id = ?"
+	query := "SELECT u.* FROM users u INNER JOIN users_feeds uf ON u.id = uf.user_id WHERE uf.feed_id = ?"
 
 	var users []entity.User
 	err := r.conn.Db.Select(&users, query, feedId)
@@ -40,7 +40,7 @@ func (r *UsersRepository) FindUsersByFeedId(feedId int) ([]entity.User, error) {
 }
 
 func (r *UsersRepository) FindByTelegramId(telegramId int) (*entity.User, error) {
-	query := "select u.* from users u where u.telegram_id = ?"
+	query := "SELECT u.* FROM users u WHERE u.telegram_id = ?"
 
 	var user entity.User
 	err := r.conn.Db.Get(&user, query, telegramId)

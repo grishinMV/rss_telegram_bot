@@ -56,6 +56,11 @@ func (h *ReceiveDeleteMessageHandler) Handle(e interface{}) error {
 	err := h.usersRepository.Save(user)
 
 	feeds, err := h.feedsRepository.FindByUser(event.User.Id)
+	if len(feeds) == 0 {
+		_, _ = h.messenger.SendTextMessage(message.Chat.Id, "Удалять нечего")
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}

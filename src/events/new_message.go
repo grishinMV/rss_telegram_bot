@@ -97,8 +97,10 @@ func (h *NewMessageHandler) handleCustomMessage(user *entity.User, message *tele
 			Message: message,
 		})
 	case UserMessageDelete:
-		h.logger.Log("delete")
-		_, _ = h.telegram.SendTextMessage(message.Chat.Id, "delete")
+		go h.em.Dispatch(DeleteFeed{
+			User:    user,
+			Message: message,
+		})
 	}
 
 	user.LastMessage = message.Text
