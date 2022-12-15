@@ -81,10 +81,10 @@ func (r *FeedRepository) FindByUrl(url string) ([]entity.Feed, error) {
 	return feeds, nil
 }
 
-func (r *FeedRepository) FindForUpdate() ([]entity.Feed, error) {
+func (r *FeedRepository) FindForUpdate(now time.Time) ([]entity.Feed, error) {
 	query := "SELECT * FROM feeds WHERE feeds.next_parse < ?"
 	var feed []entity.Feed
-	err := r.conn.Db.Select(&feed, query, time.Now().Unix())
+	err := r.conn.Db.Select(&feed, query, now.Unix())
 	if err != nil {
 		return nil, err
 	}

@@ -22,21 +22,23 @@ func (fu AddFeed) GetName() string {
 }
 
 type AddFeedHandler struct {
-	messenger       *telegram.Client
+	messenger       telegram.Client
 	logger          Logger
 	usersRepository *repository.UsersRepository
 	feedsRepository *repository.FeedRepository
 	feedParser      *parser.Parser
 	em              *Manager
+	location        *time.Location
 }
 
 func NewAddFeedHandler(
-	messenger *telegram.Client,
+	messenger telegram.Client,
 	logger Logger,
 	usersRepository *repository.UsersRepository,
 	feedsRepository *repository.FeedRepository,
 	feedParser *parser.Parser,
 	em *Manager,
+	location *time.Location,
 ) *AddFeedHandler {
 	return &AddFeedHandler{
 		messenger:       messenger,
@@ -45,6 +47,7 @@ func NewAddFeedHandler(
 		feedsRepository: feedsRepository,
 		feedParser:      feedParser,
 		em:              em,
+		location:        location,
 	}
 }
 
@@ -73,10 +76,10 @@ func (h *AddFeedHandler) Handle(e interface{}) error {
 	} else {
 		feed = entity.Feed{
 			Link:    link,
-			LastNew: time.Now().Unix(),
+			LastNew: time.Now().In(h.location).Unix(),
 		}
 
-		_, err = h.feedParser.Parse(&feed)
+		_, err = h.feedParser.Parse(&feed, h.location)
 		if err != nil {
 			h.handleError(event.Message)
 			return nil

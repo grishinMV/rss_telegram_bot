@@ -18,14 +18,14 @@ func (fu ReceiveDeleteMessage) GetName() string {
 }
 
 type ReceiveDeleteMessageHandler struct {
-	messenger       *telegram.Client
+	messenger       telegram.Client
 	logger          Logger
 	usersRepository *repository.UsersRepository
 	feedsRepository *repository.FeedRepository
 }
 
 func NewReceiveDeleteMessageHandler(
-	messenger *telegram.Client,
+	messenger telegram.Client,
 	logger Logger,
 	usersRepository *repository.UsersRepository,
 	feedsRepository *repository.FeedRepository,

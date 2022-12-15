@@ -19,13 +19,13 @@ func (fu NewFeedItem) GetName() string {
 }
 
 type NewFeedItemHandler struct {
-	messenger       *telegram.Client
+	messenger       telegram.Client
 	logger          Logger
 	usersRepository *repository.UsersRepository
 }
 
 func NewNewFeedItemHandler(
-	messenger *telegram.Client,
+	messenger telegram.Client,
 	logger Logger,
 	usersRepository *repository.UsersRepository,
 ) *NewFeedItemHandler {

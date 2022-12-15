@@ -17,7 +17,8 @@ func main() {
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), client)
+
+	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), *client)
 	dbPath, exist := os.LookupEnv("DB_PATH")
 	if !exist {
 		dbPath = os.Getenv("DB_PATH")
@@ -33,10 +34,10 @@ func main() {
 	usersRepository := repository.NewUsersRepository(dbConnection)
 	loggerService := &logger.Logger{}
 	eventManager := events.NewEventManager(loggerService)
-
 	feedParser := parser.NewParser(client)
+	location, err := time.LoadLocation("Asia/Novosibirsk")
 
-	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository, feedParser)
+	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository, feedParser, location)
 
 	var lastMessageId int
 
@@ -53,12 +54,12 @@ func main() {
 			})
 		}
 
-		feeds, _ := feedRepository.FindForUpdate()
+		feeds, _ := feedRepository.FindForUpdate(time.Now().In(location))
 
 		for _, feed := range feeds {
 			feed := feed
 			go func() {
-				feedItems, err := feedParser.Parse(&feed)
+				feedItems, err := feedParser.Parse(&feed, location)
 				if err != nil {
 					loggerService.Log(err.Error())
 				}
@@ -85,11 +86,12 @@ func main() {
 
 func registerHandlers(
 	em *events.Manager,
-	messenger *telegram.Client,
+	messenger telegram.Client,
 	logger *logger.Logger,
 	usersRepository *repository.UsersRepository,
 	feedRepository *repository.FeedRepository,
 	feedParser *parser.Parser,
+	location *time.Location,
 ) {
 	newFeedItemHandler := events.NewNewFeedItemHandler(messenger, logger, usersRepository)
 	em.RegisterHandler(newFeedItemHandler)
@@ -118,6 +120,7 @@ func registerHandlers(
 		feedRepository,
 		feedParser,
 		em,
+		location,
 	)
 	em.RegisterHandler(addFeedHandler)
 

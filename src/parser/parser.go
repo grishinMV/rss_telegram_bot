@@ -10,7 +10,7 @@ import (
 
 const userAgent = "RSS bot"
 
-var ParsePeriod = int64(60 * time.Second)
+var ParsePeriod int64 = 60
 
 type Parser struct {
 	httpClient *http.Client
@@ -26,14 +26,14 @@ func NewParser(
 	}
 }
 
-func (p *Parser) Parse(feed *entity.Feed) ([]FeedItem, error) {
+func (p *Parser) Parse(feed *entity.Feed, location *time.Location) ([]FeedItem, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println("panic occurred:", err)
 		}
 	}()
 
-	nowTimestamp := time.Now().Unix()
+	nowTimestamp := time.Now().In(location).Unix()
 
 	req, err := http.NewRequest("GET", feed.Link, nil)
 	if err != nil {
@@ -55,12 +55,17 @@ func (p *Parser) Parse(feed *entity.Feed) ([]FeedItem, error) {
 	}
 
 	var newItems []FeedItem
+
 	for _, item := range parsedRss.Items {
+		if item == nil {
+			continue
+		}
+
 		if item.PublishedParsed == nil {
 			continue
 		}
 
-		if item.PublishedParsed.Unix() < feed.LastNew {
+		if item.PublishedParsed.In(location).Unix() < feed.LastNew {
 			continue
 		}
 
@@ -72,7 +77,7 @@ func (p *Parser) Parse(feed *entity.Feed) ([]FeedItem, error) {
 	}
 
 	feed.LastNew = nowTimestamp
-	feed.NextParse = ParsePeriod + time.Now().Unix()
+	feed.NextParse = ParsePeriod + time.Now().In(location).Unix()
 
 	return newItems, err
 }

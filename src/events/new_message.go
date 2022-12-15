@@ -25,14 +25,14 @@ func (m NewMessage) GetName() string {
 type NewMessageHandler struct {
 	logger          Logger
 	usersRepository *repository.UsersRepository
-	telegram        *telegram.Client
+	telegram        telegram.Client
 	em              *Manager
 }
 
 func NewNewMessageHandler(
 	logger Logger,
 	usersRepository *repository.UsersRepository,
-	telegram *telegram.Client,
+	telegram telegram.Client,
 	em *Manager,
 ) *NewMessageHandler {
 	return &NewMessageHandler{

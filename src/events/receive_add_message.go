@@ -18,13 +18,13 @@ func (fu ReceiveAddMessage) GetName() string {
 }
 
 type ReceiveAddMessageHandler struct {
-	messenger       *telegram.Client
+	messenger       telegram.Client
 	logger          Logger
 	usersRepository *repository.UsersRepository
 }
 
 func NewReceiveAddMessageHandler(
-	messenger *telegram.Client,
+	messenger telegram.Client,
 	logger Logger,
 	usersRepository *repository.UsersRepository,
 ) *ReceiveAddMessageHandler {

@@ -18,13 +18,13 @@ func (fu StartChat) GetName() string {
 }
 
 type StartChatHandler struct {
-	messenger       *telegram.Client
+	messenger       telegram.Client
 	logger          Logger
 	usersRepository *repository.UsersRepository
 }
 
 func NewStartChatHandler(
-	messenger *telegram.Client,
+	messenger telegram.Client,
 	logger Logger,
 	usersRepository *repository.UsersRepository,
 ) *StartChatHandler {

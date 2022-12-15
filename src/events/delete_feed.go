@@ -19,7 +19,7 @@ func (fu DeleteFeed) GetName() string {
 }
 
 type DeleteFeedHandler struct {
-	messenger       *telegram.Client
+	messenger       telegram.Client
 	logger          Logger
 	usersRepository *repository.UsersRepository
 	feedsRepository *repository.FeedRepository
@@ -28,7 +28,7 @@ type DeleteFeedHandler struct {
 }
 
 func NewDeleteFeedHandler(
-	messenger *telegram.Client,
+	messenger telegram.Client,
 	logger Logger,
 	usersRepository *repository.UsersRepository,
 	feedsRepository *repository.FeedRepository,

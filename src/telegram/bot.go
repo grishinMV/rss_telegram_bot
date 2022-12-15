@@ -11,11 +11,11 @@ import (
 type Client struct {
 	apiUrl string
 	token  string
-	client *http.Client
+	client http.Client
 }
 
-func NewTelegramClient(apiUrl string, token string, client *http.Client) *Client {
-	return &Client{
+func NewTelegramClient(apiUrl string, token string, client http.Client) Client {
+	return Client{
 		apiUrl: apiUrl,
 		token:  token,
 		client: client,
@@ -54,6 +54,10 @@ func (bot *Client) SendTextMessage(chatId int, text string) (*SendMessageRespons
 
 	query := bot.apiUrl + "/bot" + bot.token + "/sendMessage?" + params
 	response, err := bot.client.Get(query)
+	if err != nil {
+		return nil, err
+	}
+
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
