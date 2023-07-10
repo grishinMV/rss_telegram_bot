@@ -14,11 +14,11 @@ import (
 )
 
 func main() {
-	client := &http.Client{
+	client := http.Client{
 		Timeout: 10 * time.Second,
 	}
 
-	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), *client)
+	telegramClient := telegram.NewTelegramClient("https://api.telegram.org", os.Getenv("API_KEY"), client)
 	dbPath, exist := os.LookupEnv("DB_PATH")
 	if !exist {
 		dbPath = os.Getenv("DB_PATH")
@@ -34,7 +34,7 @@ func main() {
 	usersRepository := repository.NewUsersRepository(dbConnection)
 	loggerService := &logger.Logger{}
 	eventManager := events.NewEventManager(loggerService)
-	feedParser := parser.NewParser(client)
+	feedParser := parser.NewParser(client, loggerService)
 	location, err := time.LoadLocation("Asia/Novosibirsk")
 
 	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository, feedParser, location)

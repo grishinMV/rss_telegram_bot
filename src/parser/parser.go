@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"rss-bot/src/entity"
+	"rss-bot/src/logger"
 	"time"
 )
 
@@ -13,16 +14,19 @@ const userAgent = "RSS bot"
 var ParsePeriod int64 = 60
 
 type Parser struct {
-	httpClient *http.Client
-	parser     *gofeed.Parser
+	httpClient http.Client
+	parser     gofeed.Parser
+	logger     *logger.Logger
 }
 
 func NewParser(
-	client *http.Client,
+	client http.Client,
+	logger *logger.Logger,
 ) *Parser {
 	return &Parser{
 		httpClient: client,
-		parser:     gofeed.NewParser(),
+		parser:     *gofeed.NewParser(),
+		logger:     logger,
 	}
 }
 
@@ -44,7 +48,7 @@ func (p *Parser) Parse(feed *entity.Feed, location *time.Location) ([]FeedItem, 
 
 	response, err := p.httpClient.Do(req)
 	if err != nil {
-		feed.LastNew = nowTimestamp
+		feed.NextParse = ParsePeriod + time.Now().In(location).Unix()
 
 		return nil, err
 	}
@@ -62,10 +66,14 @@ func (p *Parser) Parse(feed *entity.Feed, location *time.Location) ([]FeedItem, 
 		}
 
 		if item.PublishedParsed == nil {
+			p.logger.Log(item.Link + " [skip] PublishedParsed is null")
+
 			continue
 		}
 
 		if item.PublishedParsed.In(location).Unix() < feed.LastNew {
+			p.logger.Log(item.Link + " [skip] item time < LastNew")
+
 			continue
 		}
 
@@ -77,7 +85,7 @@ func (p *Parser) Parse(feed *entity.Feed, location *time.Location) ([]FeedItem, 
 	}
 
 	feed.LastNew = nowTimestamp
-	feed.NextParse = ParsePeriod + time.Now().In(location).Unix()
+	feed.NextParse = ParsePeriod + nowTimestamp
 
 	return newItems, err
 }

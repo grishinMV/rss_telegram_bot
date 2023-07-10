@@ -22,7 +22,7 @@ func NewTelegramClient(apiUrl string, token string, client http.Client) Client {
 	}
 }
 
-func (bot *Client) GetMe() (*User, error) {
+func (bot Client) GetMe() (*User, error) {
 	response, err := bot.client.Get(bot.apiUrl + "/bot" + bot.token + "/getMe")
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -35,7 +35,7 @@ func (bot *Client) GetMe() (*User, error) {
 	return &result, err
 }
 
-func (bot *Client) GetUpdates(offset int, limit int) (*UpdateResponse, error) {
+func (bot Client) GetUpdates(offset int, limit int) (*UpdateResponse, error) {
 	params := "offset=" + strconv.Itoa(offset) + "&limit=" + strconv.Itoa(limit)
 	query := bot.apiUrl + "/bot" + bot.token + "/getUpdates?" + params
 	response, err := bot.client.Get(query)
@@ -49,7 +49,7 @@ func (bot *Client) GetUpdates(offset int, limit int) (*UpdateResponse, error) {
 	return &result, err
 }
 
-func (bot *Client) SendTextMessage(chatId int, text string) (*SendMessageResponse, error) {
+func (bot Client) SendTextMessage(chatId int, text string) (*SendMessageResponse, error) {
 	params := "chat_id=" + strconv.Itoa(chatId) + "&text=" + text
 
 	query := bot.apiUrl + "/bot" + bot.token + "/sendMessage?" + params
@@ -68,7 +68,7 @@ func (bot *Client) SendTextMessage(chatId int, text string) (*SendMessageRespons
 	return &result, err
 }
 
-func (bot *Client) SendReplyMarkup(chatId int, text string, markup ReplyKeyboardMarkup) (*SendMessageResponse, error) {
+func (bot Client) SendReplyMarkup(chatId int, text string, markup ReplyKeyboardMarkup) (*SendMessageResponse, error) {
 	markupJson, err := json.Marshal(markup)
 	if err != nil {
 		return nil, err
