@@ -82,9 +82,10 @@ func (p *Parser) Parse(feed *entity.Feed, location *time.Location) ([]FeedItem, 
 			Text:   item.Title,
 			Link:   item.Link,
 		})
+
+		feed.LastNew = nowTimestamp
 	}
 
-	feed.LastNew = nowTimestamp
 	feed.NextParse = ParsePeriod + nowTimestamp
 
 	return newItems, err
