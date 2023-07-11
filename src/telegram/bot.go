@@ -39,12 +39,27 @@ func (bot Client) GetUpdates(offset int, limit int) (*UpdateResponse, error) {
 	params := "offset=" + strconv.Itoa(offset) + "&limit=" + strconv.Itoa(limit)
 	query := bot.apiUrl + "/bot" + bot.token + "/getUpdates?" + params
 	response, err := bot.client.Get(query)
-	body, err := io.ReadAll(response.Body)
 	if err != nil {
+		_ = response.Body.Close()
+
 		return nil, err
 	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		_ = response.Body.Close()
+
+		return nil, err
+	}
+
+	_ = response.Body.Close()
 	result := UpdateResponse{}
 	err = json.Unmarshal(body, &result)
+	if err != nil {
+		_ = response.Body.Close()
+
+		return nil, err
+	}
 
 	return &result, err
 }
