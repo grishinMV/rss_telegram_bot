@@ -34,7 +34,7 @@ func main() {
 	usersRepository := repository.NewUsersRepository(dbConnection)
 	loggerService := &logger.Logger{}
 	eventManager := events.NewEventManager(loggerService)
-	feedParser := parser.NewParser(client, loggerService)
+	feedParser := parser.NewParser(client)
 	location, err := time.LoadLocation("Asia/Novosibirsk")
 
 	registerHandlers(eventManager, telegramClient, loggerService, usersRepository, feedRepository, feedParser, location)
@@ -49,9 +49,11 @@ func main() {
 
 		for _, update := range updates.Result {
 			lastMessageId = update.UpdateID + 1
-			go eventManager.Dispatch(events.NewMessage{
-				Message: update.Message,
-			})
+			if update.Message != nil {
+				go eventManager.Dispatch(events.NewMessage{
+					Message: update.Message,
+				})
+			}
 		}
 
 		feeds, _ := feedRepository.FindForUpdate(time.Now().In(location))

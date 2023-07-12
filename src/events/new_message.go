@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"reflect"
+	"regexp"
 	"rss-bot/src/entity"
 	"rss-bot/src/repository"
 	"rss-bot/src/telegram"
@@ -13,6 +14,10 @@ import (
 const UserMessageStart = "/start"
 const UserMessageAdd = "/add"
 const UserMessageDelete = "/delete"
+
+type commands struct {
+	Start, Add, Delete *regexp.Regexp
+}
 
 type NewMessage struct {
 	Message *telegram.Message
@@ -27,6 +32,7 @@ type NewMessageHandler struct {
 	usersRepository *repository.UsersRepository
 	telegram        telegram.Client
 	em              *Manager
+	commands        commands
 }
 
 func NewNewMessageHandler(
@@ -40,6 +46,11 @@ func NewNewMessageHandler(
 		usersRepository: usersRepository,
 		telegram:        telegram,
 		em:              em,
+		commands: commands{
+			Start:  regexp.MustCompile(UserMessageStart),
+			Add:    regexp.MustCompile(UserMessageAdd),
+			Delete: regexp.MustCompile(UserMessageDelete),
+		},
 	}
 }
 
@@ -62,22 +73,22 @@ func (h *NewMessageHandler) Handle(e interface{}) error {
 		}
 	}
 
-	switch event.Message.Text {
-	case UserMessageStart:
+	switch {
+	case h.commands.Start.MatchString(event.Message.Text):
 		go h.em.Dispatch(StartChat{
 			Message: event.Message,
 			User:    user,
 		})
 
 		return nil
-	case UserMessageAdd:
+	case h.commands.Add.MatchString(event.Message.Text):
 		go h.em.Dispatch(ReceiveAddMessage{
 			Message: event.Message,
 			User:    user,
 		})
 
 		return nil
-	case UserMessageDelete:
+	case h.commands.Delete.MatchString(event.Message.Text):
 		go h.em.Dispatch(ReceiveDeleteMessage{
 			Message: event.Message,
 			User:    user,
@@ -90,13 +101,13 @@ func (h *NewMessageHandler) Handle(e interface{}) error {
 }
 
 func (h *NewMessageHandler) handleCustomMessage(user *entity.User, message *telegram.Message) error {
-	switch user.LastMessage {
-	case UserMessageAdd:
+	switch {
+	case h.commands.Add.MatchString(user.LastMessage):
 		go h.em.Dispatch(AddFeed{
 			User:    user,
 			Message: message,
 		})
-	case UserMessageDelete:
+	case h.commands.Delete.MatchString(user.LastMessage):
 		go h.em.Dispatch(DeleteFeed{
 			User:    user,
 			Message: message,
